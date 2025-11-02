@@ -1,96 +1,95 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>PDF-Collab (Supabase)</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PDF-Collab</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { font-family: Arial, sans-serif; margin:0; background:#fff; color:#333;}
+.topbar { background:gold; padding:10px; display:flex; justify-content:space-between; align-items:center;}
+.topbar h1 { margin:0; font-size:1.5rem;}
+.topbar button { background:#fff; border:none; padding:5px 10px; cursor:pointer; border-radius:4px;}
+.container { display:flex; height:calc(100vh - 50px);}
+.sidebar { width:250px; border-right:1px solid #ddd; padding:10px; background:#fff;}
+.sidebar h2 { margin-top:0;}
+#folders { list-style:none; padding:0; margin:0;}
+#folders li { padding:8px; cursor:pointer; border-radius:4px;}
+#folders li.active { background:gold; color:#fff;}
+.upload-box { margin-top:20px; padding:10px; border:2px dashed gold; text-align:center; cursor:pointer; border-radius:6px;}
+.upload-box.drag { background:gold; color:#fff;}
+.upload-box label { color:blue; text-decoration:underline; cursor:pointer;}
+.main-area { flex:1; padding:10px; display:flex; flex-direction:column;}
+.toolbar { display:flex; justify-content:space-between; margin-bottom:10px;}
+#pdfList { flex:1; overflow:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px;}
+.pdf-card { border:1px solid #ddd; border-radius:4px; padding:5px; background:#fff;}
+.pdf-card .thumb { background:gold; color:#fff; height:100px; display:flex; align-items:center; justify-content:center; font-weight:bold; margin-bottom:5px;}
+.pdf-card .meta h3 { margin:0; font-size:1rem; word-break:break-word;}
+.pdf-card .card-actions button { margin-right:5px; padding:3px 6px; border:none; border-radius:4px; cursor:pointer; background:gold; color:#fff;}
+.viewer { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; flex-direction:column;}
+.viewer-toolbar { background:#fff; padding:5px; display:flex; gap:10px; }
+.viewer-content { flex:1; background:#fff; overflow:auto; padding:10px;}
+</style>
 </head>
 <body>
-  <!-- HEADER -->
-  <header class="topbar">
-    <h1>PDF-Collab</h1>
-    <div class="top-actions">
-      <button id="btnSignIn">Sign In</button>
-      <button id="btnSignOut" style="display:none">Sign Out</button>
+
+<header class="topbar">
+  <h1>PDF-Collab</h1>
+  <div class="top-actions">
+    <button id="btnSignIn">Sign In</button>
+    <button id="btnSignOut" style="display:none">Sign Out</button>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>Ordner</h2>
+    <ul id="folders">
+      <li data-folder="current" class="active">Aktueller Workflow</li>
+      <li data-folder="past">Vergangene Workflows</li>
+      <li data-folder="finished">Fertige Abgaben</li>
+      <li data-folder="trash">Papierkorb</li>
+    </ul>
+
+    <div class="upload-box" id="uploadBox">
+      <p>Zieh PDFs hierher oder <label for="fileInput">Datei wählen</label></p>
+      <input id="fileInput" type="file" accept="application/pdf" hidden multiple>
+      <small>Max Größe abhängig vom Supabase Plan</small>
     </div>
-  </header>
+  </aside>
 
-  <!-- MAIN CONTAINER -->
-  <main class="container">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <h2>Ordner</h2>
-      <ul id="folders">
-        <li data-folder="current" class="folder active">Aktueller Workflow</li>
-        <li data-folder="past" class="folder">Vergangene Workflows</li>
-        <li data-folder="finished" class="folder">Fertige Abgaben</li>
-        <li data-folder="trash" class="folder">Papierkorb</li>
-      </ul>
+  <!-- Main Area -->
+  <section class="main-area">
+    <div class="toolbar">
+      <input id="search" type="text" placeholder="Suche PDFs...">
+      <select id="sortBy">
+        <option value="date-desc">Neueste zuerst</option>
+        <option value="date-asc">Älteste zuerst</option>
+        <option value="name-asc">Name A→Z</option>
+      </select>
+    </div>
 
-      <div class="upload-box" id="uploadBox">
-        <p>Zieh deine PDFs hierher oder <label for="fileInput" class="linklike">Datei wählen</label></p>
-        <input id="fileInput" type="file" accept="application/pdf" hidden multiple>
-        <small>Max Größe/Upload abhängig vom Supabase Plan</small>
+    <!-- PDF Liste -->
+    <div id="pdfList" class="pdf-list"></div>
+
+    <!-- PDF Viewer -->
+    <div id="viewer" class="viewer" style="display:none">
+      <div class="viewer-toolbar">
+        <button id="viewerClose">Schließen</button>
+        <button id="moveToFinished">Als fertig markieren</button>
+        <button id="moveToTrash">Papierkorb</button>
+        <a id="downloadLink" href="#" download>Download</a>
       </div>
-    </aside>
+      <div id="viewerContent" class="viewer-content"></div>
+    </div>
+  </section>
+</main>
 
-    <!-- MAIN AREA -->
-    <section class="main-area">
-      <div class="toolbar">
-        <input id="search" type="text" placeholder="Suche PDFs..." />
-        <select id="sortBy">
-          <option value="date-desc">Neueste zuerst</option>
-          <option value="date-asc">Älteste zuerst</option>
-          <option value="name-asc">Name A→Z</option>
-        </select>
-      </div>
-
-      <div id="pdfList" class="pdf-list">
-        <!-- PDF-Karten werden hier dynamisch über JS erstellt -->
-      </div>
-
-      <!-- PDF Viewer -->
-      <div id="viewer" class="viewer" style="display:none">
-        <div class="viewer-toolbar">
-          <button id="viewerClose">Schließen</button>
-          <button id="moveToFinished">Als fertig markieren</button>
-          <button id="moveToTrash">Papierkorb</button>
-          <a id="downloadLink" href="#" download>Download</a>
-        </div>
-        <div id="viewerContent" class="viewer-content"></div>
-      </div>
-    </section>
-  </main>
-
-  <!-- SUPABASE + APP -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-  <script src="config.js"></script>
-  <script src="app.js"></script>
-
-  <script>
-    // Sicherstellen, dass Ordner klickbar sind
-    const folderEls = document.querySelectorAll('#folders .folder');
-    folderEls.forEach(folder => {
-      folder.addEventListener('click', () => {
-        folderEls.forEach(f => f.classList.remove('active'));
-        folder.classList.add('active');
-      });
-    });
-
-    // Drag & Drop Visual Feedback
-    const uploadBox = document.getElementById('uploadBox');
-    uploadBox.addEventListener('dragover', e => { e.preventDefault(); uploadBox.classList.add('drag'); });
-    uploadBox.addEventListener('dragleave', () => { uploadBox.classList.remove('drag'); });
-    uploadBox.addEventListener('drop', e => {
-      e.preventDefault();
-      uploadBox.classList.remove('drag');
-      const files = e.dataTransfer.files;
-      document.getElementById('fileInput').files = files; // übergibt Dateien an fileInput
-      const event = new Event('change');
-      document.getElementById('fileInput').dispatchEvent(event);
-    });
-  </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
+
 
