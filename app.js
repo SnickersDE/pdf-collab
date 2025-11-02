@@ -30,32 +30,39 @@ uploadBox.addEventListener('dragleave', ()=>uploadBox.classList.remove('drag'));
 uploadBox.addEventListener('drop', e=>{ e.preventDefault(); uploadBox.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
 fileInput.addEventListener('change', e=>handleFiles(e.target.files));
 
-// Upload-Funktion
 async function handleFiles(fileList){
-  const arr = Array.from(fileList).filter(f=>f.type==='application/pdf');
-  if(!arr.length) return alert('Nur PDF erlaubt');
+  const arr = Array.from(fileList).filter(f => f.type === 'application/pdf');
+  if (!arr.length) return alert('Nur PDF erlaubt');
 
-  for(const file of arr){
-    const timestamp = Date.now();
-    const safeFileName = file.name.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\-\.]/g,'');
-    const path = `${activeFolder}/anon_${timestamp}_${safeFileName}`;
+  for (const file of arr) {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result.split(',')[1]; // remove data prefix
+      const timestamp = Date.now();
+      const safeFileName = file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-\.]/g, '');
+      const fileName = `anon_${timestamp}_${safeFileName}`;
 
-    // Storage Upload
-    const { data: uploadData, error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(path, file, { cacheControl:'3600', upsert:false });
-    if(uploadError){ console.error("Storage Error:",uploadError); alert('Upload fehlgeschlagen'); continue; }
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName,
+          fileContent: base64,
+          folder: activeFolder
+        })
+      });
 
-    // DB Eintrag
-    const { error: insertError } = await supabase.from('files').insert([{
-      filename:file.name,
-      path:uploadData.path,
-      size:file.size,
-      folder:activeFolder,
-      owner:null
-    }]);
-    if(insertError){ console.error("DB Insert Error:",insertError); alert('Upload fehlgeschlagen'); continue; }
+      const result = await res.json();
+      if (!res.ok) {
+        console.error("Upload Error:", result.error);
+        alert('Upload fehlgeschlagen');
+        return;
+      }
+
+      fetchFiles(); // Refresh list
+    };
+    reader.readAsDataURL(file);
   }
-
-  fetchFiles();
 }
 
 // Dateien abrufen
