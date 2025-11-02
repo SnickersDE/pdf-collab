@@ -1,18 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PDF-Collab (Supabase)</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PDF-Collab (Supabase)</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="topbar">
-    <h1>PDF-Collab</h1>
+    <h1>PDF-Collab (Supabase)</h1>
   </header>
 
   <main class="container">
-    <!-- Sidebar -->
     <aside class="sidebar">
       <h2>Ordner</h2>
       <ul id="folders">
@@ -24,12 +23,11 @@
 
       <div class="upload-box" id="uploadBox">
         <p>PDF hierher ziehen oder <label for="fileInput" class="linklike">Datei wählen</label></p>
-        <input type="file" id="fileInput" accept="application/pdf" hidden>
-        <small>Max. Uploadgröße abhängig vom Supabase-Plan</small>
+        <input id="fileInput" type="file" accept="application/pdf" hidden>
+        <small>Max Größe/Upload: abhängig vom Supabase Plan.</small>
       </div>
     </aside>
 
-    <!-- Main Area -->
     <section class="main-area">
       <div class="toolbar">
         <input id="search" placeholder="Suche PDFs...">
@@ -43,7 +41,6 @@
 
       <div id="pdfList" class="pdf-list"></div>
 
-      <!-- Viewer -->
       <div id="viewer" class="viewer" style="display:none">
         <div class="viewer-toolbar">
           <button id="viewerClose">Schließen</button>
