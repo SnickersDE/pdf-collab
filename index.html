@@ -1,29 +1,18 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PDF-Collab Anonym</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body { font-family: sans-serif; background: #fff8dc; color: #333; margin:0; padding:0; }
-    header { background: gold; padding: 1rem; text-align:center; font-weight:bold; }
-    .container { display:flex; height: calc(100vh - 70px); }
-    aside.sidebar { width: 250px; padding:1rem; background:#fff; border-right:1px solid #ccc; box-sizing:border-box; }
-    .main-area { flex:1; padding:1rem; display:flex; flex-direction:column; box-sizing:border-box; }
-    .upload-box { border:2px dashed gold; padding:1rem; text-align:center; margin-top:1rem; cursor:pointer; }
-    .upload-box.drag { background: #fff3b0; }
-    #pdfList { margin-top:1rem; flex:1; overflow:auto; }
-    .pdf-card { border:1px solid #ccc; padding:0.5rem; margin-bottom:0.5rem; background:#fff; }
-    .pdf-card button { margin-right:0.5rem; }
-    #viewer { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:none; }
-    #viewerContent { width:80%; height:80%; margin:5% auto; background:#fff; }
-    #viewer .viewer-toolbar { padding:0.5rem; background:gold; display:flex; justify-content:space-between; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF-Collab (Supabase)</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>PDF-Collab Anonym</header>
-  <div class="container">
+  <header class="topbar">
+    <h1>PDF-Collab</h1>
+  </header>
+
+  <main class="container">
+    <!-- Sidebar -->
     <aside class="sidebar">
       <h2>Ordner</h2>
       <ul id="folders">
@@ -34,26 +23,39 @@
       </ul>
 
       <div class="upload-box" id="uploadBox">
-        <p>PDF hierher ziehen oder <label for="fileInput" style="text-decoration:underline; cursor:pointer;">Datei wählen</label></p>
+        <p>PDF hierher ziehen oder <label for="fileInput" class="linklike">Datei wählen</label></p>
         <input type="file" id="fileInput" accept="application/pdf" hidden>
+        <small>Max. Uploadgröße abhängig vom Supabase-Plan</small>
       </div>
     </aside>
 
+    <!-- Main Area -->
     <section class="main-area">
-      <div id="pdfList">Lade Dateien...</div>
+      <div class="toolbar">
+        <input id="search" placeholder="Suche PDFs...">
+        <select id="sortBy">
+          <option value="date-desc">Neueste zuerst</option>
+          <option value="date-asc">Älteste zuerst</option>
+          <option value="name-asc">Name A→Z</option>
+          <option value="name-desc">Name Z→A</option>
+        </select>
+      </div>
+
+      <div id="pdfList" class="pdf-list"></div>
+
+      <!-- Viewer -->
+      <div id="viewer" class="viewer" style="display:none">
+        <div class="viewer-toolbar">
+          <button id="viewerClose">Schließen</button>
+          <a id="downloadLink" href="#" download>Download</a>
+        </div>
+        <div id="viewerContent" class="viewer-content"></div>
+      </div>
     </section>
-  </div>
+  </main>
 
-  <div id="viewer">
-    <div class="viewer-toolbar">
-      <button id="viewerClose">Schließen</button>
-      <a id="downloadLink" href="#" download>Download</a>
-    </div>
-    <div id="viewerContent"></div>
-  </div>
-
-  <script type="module" src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <script src="config.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
-
