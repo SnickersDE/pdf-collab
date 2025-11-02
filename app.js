@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const BUCKET_NAME = 'pdf-collab'; // ✅ Define your bucket name
 
 const fileInput = document.getElementById('fileInput');
 const uploadBox = document.getElementById('uploadBox');
@@ -42,24 +43,37 @@ async function handleFiles(fileList) {
       const safeFileName = file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-\.]/g, '');
       const fileName = `anon_${timestamp}_${safeFileName}`;
 
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileName,
-          fileContent: base64,
-          folder: activeFolder
-        })
-      });
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName,
+            fileContent: base64,
+            folder: activeFolder
+          })
+        });
 
-      const result = await res.json();
-      if (!res.ok) {
-        console.error("Upload Error:", result.error);
-        alert('Upload fehlgeschlagen');
-        return;
+        let result;
+        try {
+          result = await res.json();
+        } catch (err) {
+          console.error('Invalid JSON response from server');
+          alert('Serverfehler: Antwort konnte nicht gelesen werden.');
+          return;
+        }
+
+        if (!res.ok) {
+          console.error("Upload Error:", result.error);
+          alert('Upload fehlgeschlagen: ' + result.error);
+          return;
+        }
+
+        fetchFiles();
+      } catch (err) {
+        console.error('Fetch failed:', err);
+        alert('Netzwerkfehler beim Upload');
       }
-
-      fetchFiles();
     };
     reader.readAsDataURL(file);
   }
@@ -94,7 +108,7 @@ function renderFiles(files) {
 function renderCard(f) {
   const card = document.createElement('div'); card.className = 'pdf-card';
   const title = document.createElement('h3'); title.textContent = f.filename;
-  const info = document.createElement('p'); info.textContent = `${(f.size / 1024 | 0)} KB • ${new Date(f.created_at).toLocaleString()}`;
+  const info = document.createElement('p'); info.textContent = `${(f.size / 1024).toLocaleString()} KB • ${new Date(f.created_at).toLocaleString()}`;
   const btnOpen = document.createElement('button'); btnOpen.textContent = 'Öffnen'; btnOpen.onclick = () => openViewer(f);
   const btnDl = document.createElement('button'); btnDl.textContent = 'Download'; btnDl.onclick = () => downloadFile(f);
   const btnDelete = document.createElement('button'); btnDelete.textContent = 'Löschen'; btnDelete.onclick = () => deleteFile(f);
@@ -125,20 +139,33 @@ async function deleteFile(f) {
   const confirmDelete = confirm(`"${f.filename}" wirklich löschen?`);
   if (!confirmDelete) return;
 
-  const res = await fetch('/api/delete', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path: f.path })
-  });
+  try {
+    const res = await fetch('/api/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: f.path })
+    });
 
-  const result = await res.json();
-  if (!res.ok) {
-    console.error('Delete Error:', result.error);
-    alert('Löschen fehlgeschlagen');
-    return;
+    let result;
+    try {
+      result = await res.json();
+    } catch (err) {
+      console.error('Invalid JSON response from delete API');
+      alert('Fehler beim Löschen: Antwort konnte nicht gelesen werden.');
+      return;
+    }
+
+    if (!res.ok) {
+      console.error('Delete Error:', result.error);
+      alert('Löschen fehlgeschlagen: ' + result.error);
+      return;
+    }
+
+    fetchFiles();
+  } catch (err) {
+    console.error('Delete fetch failed:', err);
+    alert('Netzwerkfehler beim Löschen');
   }
-
-  fetchFiles(); // Refresh list
 }
 
 // Suche & Sort
