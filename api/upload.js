@@ -7,6 +7,7 @@ export default async function handler(req, res) {
 
   const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('Missing Supabase environment variables');
     return res.status(500).json({ error: 'Missing Supabase environment variables.' });
   }
 
@@ -16,11 +17,14 @@ export default async function handler(req, res) {
     const { fileName, fileContent, folder } = req.body;
 
     if (!fileName || !fileContent || !folder) {
+      console.warn('Invalid request body:', req.body);
       return res.status(400).json({ error: 'Missing fileName, fileContent, or folder.' });
     }
 
     const timestamp = Date.now();
-    const safeFileName = fileName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-\.]/g, '');
+    const safeFileName = fileName
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9_\-\.]/g, '');
     const path = `${folder}/anon_${timestamp}_${safeFileName}`;
 
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -48,9 +52,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: insertError.message });
     }
 
-    return res.status(200).json({ message: 'Upload successful', path: uploadData.path });
+    return res.status(200).json({
+      message: 'Upload successful',
+      path: uploadData.path
+    });
   } catch (err) {
     console.error('Unexpected Error:', err);
-    return res.status(500).json({ error: err.message || 'Internal server error.' });
+    return res.status(500).json({
+      error: err?.message || 'Internal server error.'
+    });
   }
 }
