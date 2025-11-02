@@ -1,59 +1,59 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>PDF-Collab</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF-Collab Anonym</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: sans-serif; background: #fff8dc; color: #333; margin:0; padding:0; }
+    header { background: gold; padding: 1rem; text-align:center; font-weight:bold; }
+    .container { display:flex; height: calc(100vh - 70px); }
+    aside.sidebar { width: 250px; padding:1rem; background:#fff; border-right:1px solid #ccc; box-sizing:border-box; }
+    .main-area { flex:1; padding:1rem; display:flex; flex-direction:column; box-sizing:border-box; }
+    .upload-box { border:2px dashed gold; padding:1rem; text-align:center; margin-top:1rem; cursor:pointer; }
+    .upload-box.drag { background: #fff3b0; }
+    #pdfList { margin-top:1rem; flex:1; overflow:auto; }
+    .pdf-card { border:1px solid #ccc; padding:0.5rem; margin-bottom:0.5rem; background:#fff; }
+    .pdf-card button { margin-right:0.5rem; }
+    #viewer { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:none; }
+    #viewerContent { width:80%; height:80%; margin:5% auto; background:#fff; }
+    #viewer .viewer-toolbar { padding:0.5rem; background:gold; display:flex; justify-content:space-between; }
+  </style>
 </head>
 <body>
-<header class="topbar">
-  <h1>PDF-Collab</h1>
-</header>
+  <header>PDF-Collab Anonym</header>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>Ordner</h2>
+      <ul id="folders">
+        <li data-folder="current" class="active">Aktueller Workflow</li>
+        <li data-folder="past">Vergangene Workflows</li>
+        <li data-folder="finished">Fertige Abgaben</li>
+        <li data-folder="trash">Papierkorb</li>
+      </ul>
 
-<main class="container">
-  <aside class="sidebar">
-    <h2>Ordner</h2>
-    <ul id="folders">
-      <li data-folder="current" class="active">Aktueller Workflow</li>
-      <li data-folder="past">Vergangene Workflows</li>
-      <li data-folder="finished">Fertige Abgaben</li>
-      <li data-folder="trash">Papierkorb</li>
-    </ul>
-
-    <div class="upload-box" id="uploadBox">
-      <p>PDF hierher ziehen oder 
-        <label for="fileInput" class="linklike">Datei wählen</label>
-      </p>
-      <input type="file" id="fileInput" accept="application/pdf" hidden>
-      <small>Max Größe/Upload: abhängig vom Supabase Plan.</small>
-    </div>
-
-    <div class="toolbar">
-      <input id="search" placeholder="Suche PDFs...">
-      <select id="sortBy">
-        <option value="date-desc">Neueste zuerst</option>
-        <option value="date-asc">Älteste zuerst</option>
-        <option value="name-asc">Name A→Z</option>
-        <option value="name-desc">Name Z→A</option>
-      </select>
-    </div>
-  </aside>
-
-  <section class="main-area">
-    <div id="pdfList" class="pdf-list"></div>
-
-    <div id="viewer" class="viewer" style="display:none">
-      <div class="viewer-toolbar">
-        <button id="viewerClose">Schließen</button>
-        <a id="downloadLink" href="#" download>Download</a>
+      <div class="upload-box" id="uploadBox">
+        <p>PDF hierher ziehen oder <label for="fileInput" style="text-decoration:underline; cursor:pointer;">Datei wählen</label></p>
+        <input type="file" id="fileInput" accept="application/pdf" hidden>
       </div>
-      <div id="viewerContent" class="viewer-content"></div>
-    </div>
-  </section>
-</main>
+    </aside>
 
-<script type="module" src="config.js"></script>
-<script type="module" src="app.js"></script>
+    <section class="main-area">
+      <div id="pdfList">Lade Dateien...</div>
+    </section>
+  </div>
+
+  <div id="viewer">
+    <div class="viewer-toolbar">
+      <button id="viewerClose">Schließen</button>
+      <a id="downloadLink" href="#" download>Download</a>
+    </div>
+    <div id="viewerContent"></div>
+  </div>
+
+  <script type="module" src="config.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
+
