@@ -37,9 +37,11 @@ async function handleFiles(fileList){
 
     for(const file of arr){
         const timestamp = Date.now();
-        const path = `${activeFolder}/anon_${timestamp}_${file.name}`;
+        const safeFileName = file.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_\-\.]/g, "");
+        const path = `${activeFolder}/anon_${timestamp}_${safeFileName}`;
 
-        const { data: uploadData, error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(path, file, { cacheControl: '3600', upsert: false });
+
+        const { data: uploadData, error: uploadError } = await supabase.storage.from(pdf-collab).upload(path, file, { cacheControl: '3600', upsert: false });
         if(uploadError){ console.error(uploadError); alert('Upload fehlgeschlagen'); continue; }
 
         const { error: insertError } = await supabase.from('files').insert([{ filename:file.name, path:uploadData.path, size:file.size, folder:activeFolder, owner:null }]);
@@ -113,3 +115,4 @@ supabase.channel('public:files')
 
 // Initial
 fetchFiles();
+
