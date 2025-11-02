@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>PDF-Collab (Supabase)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Topbar / Header -->
+  <header class="topbar">
+    <h1>PDF-Collab</h1>
+    <div class="top-actions">
+      <button id="btnSignIn">Sign In</button>
+      <button id="btnSignOut" style="display:none">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+    <!-- Sidebar / Ordner + Upload -->
+    <aside class="sidebar">
+      <h2>Ordner</h2>
+      <ul id="folders">
+        <li data-folder="current" class="active">Aktueller Workflow</li>
+        <li data-folder="past">Vergangene Workflows</li>
+        <li data-folder="finished">Fertige Abgaben</li>
+        <li data-folder="trash">Papierkorb</li>
+      </ul>
+
+      <div class="upload-box" id="uploadBox">
+        <p>Zieh deine PDF hierher oder <label for="fileInput" class="linklike">Datei wählen</label></p>
+        <input id="fileInput" type="file" accept="application/pdf" hidden>
+        <small>Max Größe/Upload abhängig vom Supabase Plan</small>
+      </div>
+    </aside>
+
+    <!-- Main Area / PDF Liste + Viewer -->
+    <section class="main-area">
+      <!-- Toolbar: Suche + Sortierung -->
+      <div class="toolbar">
+        <input id="search" placeholder="Suche PDFs..." />
+        <select id="sortBy">
+          <option value="date-desc">Neueste zuerst</option>
+          <option value="date-asc">Älteste zuerst</option>
+          <option value="name-asc">Name A→Z</option>
+        </select>
+      </div>
+
+      <!-- PDF Karten -->
+      <div id="pdfList" class="pdf-list"></div>
+
+      <!-- PDF Viewer -->
+      <div id="viewer" class="viewer" style="display:none">
+        <div class="viewer-toolbar">
+          <button id="viewerClose">Schließen</button>
+          <button id="moveToFinished">Als fertig markieren</button>
+          <button id="moveToTrash">Papierkorb</button>
+          <a id="downloadLink" href="#" download>Download</a>
+        </div>
+        <div id="viewerContent" class="viewer-content"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Supabase JS + App -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
